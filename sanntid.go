@@ -1,4 +1,8 @@
-package sanntid
+package main
+
+import (
+	"github.com/michaelenger/sanntid/ruter"
+)
 
 type Line struct {
 	Name string
@@ -14,7 +18,7 @@ type Arrival struct {
 func GetArrivals(locationId int) ([]Arrival, error) {
 	var arrivals []Arrival
 
-	data, err := requestArrivalData(locationId)
+	data, err := ruter.RequestArrivalData(locationId)
 
 	if err == nil {
 		for i,j := 0,0; i < len(data); i,j = i+1,j+1 {
