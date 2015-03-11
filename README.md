@@ -12,10 +12,10 @@ go get github.com/michaelenger/sanntid
 
 ## Usage
 
-Run the `sanntid.go` script with the location ID as the first parameter to get the arrivals for that location.
+Run the `sanntid` application with the location ID as the first parameter to get the arrivals for that location. See [here](http://193.69.180.119:8080/tabledump/stops2.csv) for a list of available arrival IDs.
 
 ```shell
-go run sanntid.go 3010536
+sanntid 3010536
 ```
 
 ## License
