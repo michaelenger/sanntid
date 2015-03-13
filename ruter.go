@@ -31,25 +31,37 @@ type sanntidArrivalData struct {
 	MonitoredVehicleJourney sanntidMonitoredVehicleJourney
 }
 
+// Get the arrival data for a specific location ID
+func GetArrivalData(locationID int) ([]sanntidArrivalData, error) {
+	data, err := requestArrivalData(arrivalDataUrl(locationID))
+	if err != nil {
+		return nil, err
+	}
+
+	return parseArrivalData(data), nil
+}
+
+// Construct the arrival data URL
+func arrivalDataUrl(locationID int) string {
+	return fmt.Sprintf("http://reisapi.ruter.no/stopvisit/getdepartures/%d", locationID)
+}
+
 // RequestArrivalData retrieves information about the upcoming arrivals for
 // a given location based on its locationId.
-func requestArrivalData(locationID int) ([]sanntidArrivalData, error) {
-	var data []sanntidArrivalData
-
-	url := fmt.Sprintf("http://reisapi.ruter.no/stopvisit/getdepartures/%d", locationID)
-
+func requestArrivalData(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
+	return ioutil.ReadAll(resp.Body)
+}
 
-	json.Unmarshal(body, &data)
+func parseArrivalData(content []byte) []sanntidArrivalData {
+	var data []sanntidArrivalData
 
-	return data, err
+	json.Unmarshal(content, &data)
+
+	return data
 }
