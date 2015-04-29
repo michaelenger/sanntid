@@ -1,4 +1,4 @@
-package sanntid
+package main
 
 import (
 	"fmt"
