@@ -8,19 +8,7 @@ import (
 	"testing"
 )
 
-func TestArrivalDataUrl(t *testing.T) {
-	expected := "http://reisapi.ruter.no/stopvisit/getdepartures/12345"
-	result := arrivalDataUrl(12345)
-
-	if expected != result {
-		t.Errorf(
-			"Expected URL == %q (got: %q)",
-			expected,
-			result)
-	}
-}
-
-func TestRequestArrivalData(t *testing.T) {
+func TestRequestData(t *testing.T) {
 	exampleText := "Ruter API lol"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, exampleText)
@@ -28,7 +16,7 @@ func TestRequestArrivalData(t *testing.T) {
 	defer ts.Close()
 
 	expected := []byte(exampleText)
-	result, _ := requestArrivalData(ts.URL)
+	result, _ := requestData(ts.URL)
 
 	if !reflect.DeepEqual(expected, result) {
 		t.Errorf(
@@ -108,6 +96,119 @@ func TestParseArrivalData(t *testing.T) {
 	result := parseArrivalData(exampleContent)[0]
 
 	if !reflect.DeepEqual(expected, result) {
+		t.Errorf(
+			"Expected result == %q (got: %q)",
+			expected,
+			result)
+	}
+}
+
+func TestParsePlaceData(t *testing.T) {
+	exampleContent := []byte(`[
+	{
+		"Lines":[
+			{
+				"ID":1,
+				"Name":"1",
+				"Transportation":8,
+				"LineColour":"EC700C"
+			},
+			{
+				"ID":2,
+				"Name":"2",
+				"Transportation":8,
+				"LineColour":"EC700C"
+			},
+			{
+				"ID":3,
+				"Name":"3",
+				"Transportation":8,
+				"LineColour":"EC700C"
+			},
+			{
+				"ID":4,
+				"Name":"4",
+				"Transportation":8,
+				"LineColour":"EC700C"
+			},
+			{
+				"ID":5,
+				"Name":"5",
+				"Transportation":8,
+				"LineColour":"EC700C"
+			}
+		],
+		"X":595831,
+		"Y":6644886,
+		"Zone":"1",
+		"ShortName":"MJ",
+		"IsHub":false,
+		"ID":3010200,
+		"Name":"Majorstuen [T-bane]",
+		"District":"Oslo",
+		"DistrictID":null,
+		"PlaceType":"Stop"
+	},
+	{
+		"Lines":[
+			{
+				"ID":11,
+				"Name":"11",
+				"Transportation":7,
+				"LineColour":"0B91EF"
+			},
+			{
+				"ID":12,
+				"Name":"12",
+				"Transportation":7,
+				"LineColour":"0B91EF"
+			},
+			{
+				"ID":19,
+				"Name":"19",
+				"Transportation":7,
+				"LineColour":"0B91EF"
+			},
+			{
+				"ID":3902,
+				"Name":"N2",
+				"Transportation":2,
+				"LineColour":"E60000"
+			},
+			{
+				"ID":3911,
+				"Name":"N11",
+				"Transportation":2,
+				"LineColour":"E60000"
+			},
+			{
+				"ID":3912,
+				"Name":"N12",
+				"Transportation":2,
+				"LineColour":"E60000"
+			}
+		],
+		"X":595929,
+		"Y":6644771,
+		"Zone":"1",
+		"ShortName":"MAJK",
+		"IsHub":false,
+		"ID":3010201,
+		"Name":"Majorstuen (i Kirkeveien)",
+		"District":"Oslo",
+		"DistrictID":null,
+		"PlaceType":"Stop"
+	}
+	]`)
+	expected := sanntidPlaceData{
+		"Majorstuen [T-bane]",
+		"Stop",
+		3010200,
+	}
+
+	result := parsePlaceData(exampleContent)
+
+	if !reflect.DeepEqual(expected, result[0]) {
 		t.Errorf(
 			"Expected result == %q (got: %q)",
 			expected,

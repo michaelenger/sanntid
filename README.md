@@ -1,6 +1,6 @@
 # Sanntid
 
-Program written in Go for retrieving realtime arrival data from the [Ruter API](http://labs.trafikanten.no/how-to-use-the-api.aspx).
+Program written in Go for retrieving realtime arrival data from the [Ruter API](https://ruter.no/labs/).
 
 ## Installation
 
@@ -12,8 +12,8 @@ go get github.com/michaelenger/sanntid
 
 ## Usage
 
-Run the `sanntid` application with the location ID as the first parameter to get the arrivals for that location. See [here](http://193.69.180.119:8080/tabledump/stops2.csv) for a list of available arrival IDs.
+Run the `sanntid` application with the location name as the first parameter to get the arrivals for that location.
 
 ```shell
-sanntid 3010536
+sanntid "alexander kjellands plass"
 ```

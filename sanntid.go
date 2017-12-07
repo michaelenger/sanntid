@@ -57,29 +57,38 @@ func GetArrivals(locationId int, direction sanntidDirection) ([]Arrival, error) 
 	return arrivals, err
 }
 
+func ShowArrivals(locationId int) {
+	arrivals, err := GetArrivals(locationId, DirAny)
+
+	if err == nil {
+		for i := 0; i < len(arrivals); i++ {
+			fmt.Printf(
+				"%s %s - %s \n",
+				arrivals[i].Line.Name,
+				arrivals[i].Line.Destination,
+				arrivals[i].ExpectedArrivalTime,
+			)
+		}
+	}
+}
+
 func main() {
 	args := os.Args[1:]
 
 	if len(args) >= 1 {
 		locationID, err := strconv.ParseInt(args[0], 10, 0)
 		if err == nil {
-			arrivals, err := GetArrivals(int(locationID), DirAny)
+			ShowArrivals(int(locationID))
+		} else {
+			place, err := GetPlace(args[0])
 
 			if err == nil {
-				for i := 0; i < len(arrivals); i++ {
-					fmt.Printf(
-						"%s %s - %s \n",
-						arrivals[i].Line.Name,
-						arrivals[i].Line.Destination,
-						arrivals[i].ExpectedArrivalTime,
-					)
-				}
+				ShowArrivals(place.ID)
+			} else {
+				fmt.Printf("Error: %q\n", err)
 			}
 		}
-		if err != nil {
-			fmt.Printf("Error: %q\n", err)
-		}
 	} else {
-		fmt.Println("Error: Missing location ID")
+		fmt.Println("Error: Missing location ID\n")
 	}
 }

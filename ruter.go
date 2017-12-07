@@ -31,24 +31,15 @@ type sanntidArrivalData struct {
 	MonitoredVehicleJourney sanntidMonitoredVehicleJourney
 }
 
-// Get the arrival data for a specific location ID
-func GetArrivalData(locationID int) ([]sanntidArrivalData, error) {
-	data, err := requestArrivalData(arrivalDataUrl(locationID))
-	if err != nil {
-		return nil, err
-	}
-
-	return parseArrivalData(data), nil
-}
-
-// Construct the arrival data URL
-func arrivalDataUrl(locationID int) string {
-	return fmt.Sprintf("http://reisapi.ruter.no/stopvisit/getdepartures/%d", locationID)
+type sanntidPlaceData struct {
+	Name      string
+	PlaceType string
+	ID        int
 }
 
 // RequestArrivalData retrieves information about the upcoming arrivals for
 // a given location based on its locationId.
-func requestArrivalData(url string) ([]byte, error) {
+func requestData(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -64,4 +55,46 @@ func parseArrivalData(content []byte) []sanntidArrivalData {
 	json.Unmarshal(content, &data)
 
 	return data
+}
+
+func parsePlaceData(content []byte) []sanntidPlaceData {
+	var data []sanntidPlaceData
+
+	json.Unmarshal(content, &data)
+
+	return data
+}
+
+// Get the arrival data for a specific location ID
+func GetArrivalData(locationID int) ([]sanntidArrivalData, error) {
+	url := fmt.Sprintf("https://reisapi.ruter.no/stopvisit/getdepartures/%d", locationID)
+	data, err := requestData(url)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseArrivalData(data), nil
+}
+
+// Get a place based on a name
+func GetPlace(name string) (sanntidPlaceData, error) {
+	var place sanntidPlaceData
+
+	url := fmt.Sprintf("https://reisapi.ruter.no/place/getplaces/%s", name)
+	data, err := requestData(url)
+	if err != nil {
+		return place, err
+	}
+
+	var places []sanntidPlaceData
+	json.Unmarshal(data, &places)
+	if (len(places) > 0) {
+		for _, v := range places {
+			if v.PlaceType == "Stop" {
+				return v, nil
+			}
+		}
+	}
+
+	return place, fmt.Errorf("Unable to find place with search text: %s", name)
 }
