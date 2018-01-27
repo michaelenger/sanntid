@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 const (
@@ -26,7 +27,7 @@ type Line struct {
 
 type Arrival struct {
 	Line                Line
-	ExpectedArrivalTime string
+	ExpectedArrivalTime time.Time
 	Platform            string
 }
 
@@ -34,11 +35,14 @@ func getArrivals(locationID int, direction sanntidDirection) ([]Arrival, error) 
 	var arrivals []Arrival
 
 	data, err := GetArrivalData(locationID)
+	timeLayout := "2006-01-02T15:04:05-07:00"
 
 	if err == nil {
 		for i := 0; i < len(data); i++ {
 			lineDir := data[i].MonitoredVehicleJourney.DirectionRef
 			if direction == DirAny || direction == lineDir {
+				arrivalTime, _ := time.Parse(timeLayout, data[i].MonitoredVehicleJourney.MonitoredCall.ExpectedArrivalTime)
+
 				line := Line{
 					data[i].MonitoredVehicleJourney.PublishedLineName,
 					data[i].MonitoredVehicleJourney.DestinationName,
@@ -47,7 +51,7 @@ func getArrivals(locationID int, direction sanntidDirection) ([]Arrival, error) 
 				}
 				arrival := Arrival{
 					line,
-					data[i].MonitoredVehicleJourney.MonitoredCall.ExpectedArrivalTime,
+					arrivalTime,
 					data[i].MonitoredVehicleJourney.MonitoredCall.DeparturePlatformName,
 				}
 
@@ -74,6 +78,20 @@ func vehicleType(mode int) string {
 	}
 }
 
+func formatTime(arrivalTime time.Time) string {
+	timeUntilArrival := time.Until(arrivalTime)
+	if timeUntilArrival.Hours() > 0.1 {
+		return arrivalTime.Format("15:04")
+	}
+
+	minutes := timeUntilArrival.Minutes()
+	if minutes < 1 {
+		return "now"
+	}
+
+	return fmt.Sprintf("%0.0f min.", minutes)
+}
+
 func showArrivals(locationID int) {
 	arrivals, err := getArrivals(locationID, DirAny)
 
@@ -84,7 +102,7 @@ func showArrivals(locationID int) {
 				vehicleType(arrivals[i].Line.VehicleMode),
 				arrivals[i].Line.Name,
 				arrivals[i].Line.Destination,
-				arrivals[i].ExpectedArrivalTime,
+				formatTime(arrivals[i].ExpectedArrivalTime),
 			)
 		}
 	}
