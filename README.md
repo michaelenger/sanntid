@@ -15,5 +15,5 @@ go get github.com/michaelenger/sanntid
 Run the `sanntid` application with the location name as the first parameter to get the arrivals for that location.
 
 ```shell
-sanntid "alexander kjellands plass"
+sanntid "alexander kiellands plass"
 ```

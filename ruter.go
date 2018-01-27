@@ -88,7 +88,7 @@ func GetPlace(name string) (sanntidPlaceData, error) {
 
 	var places []sanntidPlaceData
 	json.Unmarshal(data, &places)
-	if (len(places) > 0) {
+	if len(places) > 0 {
 		for _, v := range places {
 			if v.PlaceType == "Stop" {
 				return v, nil

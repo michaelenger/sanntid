@@ -20,6 +20,7 @@ const (
 type Line struct {
 	Name        string
 	Destination string
+	VehicleMode int
 	Direction   sanntidDirection
 }
 
@@ -29,10 +30,10 @@ type Arrival struct {
 	Platform            string
 }
 
-func GetArrivals(locationId int, direction sanntidDirection) ([]Arrival, error) {
+func getArrivals(locationID int, direction sanntidDirection) ([]Arrival, error) {
 	var arrivals []Arrival
 
-	data, err := GetArrivalData(locationId)
+	data, err := GetArrivalData(locationID)
 
 	if err == nil {
 		for i := 0; i < len(data); i++ {
@@ -41,6 +42,7 @@ func GetArrivals(locationId int, direction sanntidDirection) ([]Arrival, error) 
 				line := Line{
 					data[i].MonitoredVehicleJourney.PublishedLineName,
 					data[i].MonitoredVehicleJourney.DestinationName,
+					data[i].MonitoredVehicleJourney.VehicleMode,
 					lineDir,
 				}
 				arrival := Arrival{
@@ -57,13 +59,29 @@ func GetArrivals(locationId int, direction sanntidDirection) ([]Arrival, error) 
 	return arrivals, err
 }
 
-func ShowArrivals(locationId int) {
-	arrivals, err := GetArrivals(locationId, DirAny)
+func vehicleType(mode int) string {
+	switch mode {
+	case 0: // bus
+		return "🚌"
+	case 2: // train
+		return "🚄"
+	case 3: // tram
+		return "🚋"
+	case 4: // metro
+		return "🚈"
+	default:
+		return "❓"
+	}
+}
+
+func showArrivals(locationID int) {
+	arrivals, err := getArrivals(locationID, DirAny)
 
 	if err == nil {
 		for i := 0; i < len(arrivals); i++ {
 			fmt.Printf(
-				"%s %s - %s \n",
+				"%s  %s %s - %s \n",
+				vehicleType(arrivals[i].Line.VehicleMode),
 				arrivals[i].Line.Name,
 				arrivals[i].Line.Destination,
 				arrivals[i].ExpectedArrivalTime,
@@ -78,17 +96,17 @@ func main() {
 	if len(args) >= 1 {
 		locationID, err := strconv.ParseInt(args[0], 10, 0)
 		if err == nil {
-			ShowArrivals(int(locationID))
+			showArrivals(int(locationID))
 		} else {
 			place, err := GetPlace(args[0])
 
 			if err == nil {
-				ShowArrivals(place.ID)
+				showArrivals(place.ID)
 			} else {
 				fmt.Printf("Error: %q\n", err)
 			}
 		}
 	} else {
-		fmt.Println("Error: Missing location ID\n")
+		fmt.Println("Error: Missing location ID")
 	}
 }
