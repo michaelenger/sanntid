@@ -2,6 +2,8 @@
 
 Program written in Go for retrieving realtime arrival data from the [Ruter API](https://ruter.no/labs/).
 
+![Screenshot](https://raw.githubusercontent.com/michaelenger/sanntid/master/screenshot.png)
+
 ## Installation
 
 Get the package.
