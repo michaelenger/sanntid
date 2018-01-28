@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 const (
@@ -21,7 +23,6 @@ const (
 type Line struct {
 	Name        string
 	Destination string
-	VehicleMode int
 	Direction   sanntidDirection
 }
 
@@ -46,7 +47,6 @@ func getArrivals(locationID int, direction sanntidDirection) ([]Arrival, error) 
 				line := Line{
 					data[i].MonitoredVehicleJourney.PublishedLineName,
 					data[i].MonitoredVehicleJourney.DestinationName,
-					data[i].MonitoredVehicleJourney.VehicleMode,
 					lineDir,
 				}
 				arrival := Arrival{
@@ -63,33 +63,48 @@ func getArrivals(locationID int, direction sanntidDirection) ([]Arrival, error) 
 	return arrivals, err
 }
 
-func vehicleType(mode int) string {
-	switch mode {
-	case 0: // bus
-		return "🚌"
-	case 2: // train
-		return "🚄"
-	case 3: // tram
-		return "🚋"
-	case 4: // metro
-		return "🚈"
-	default:
-		return "❓"
+func formatLineName(name string) string {
+	lineNumber, err := strconv.ParseInt(name, 10, 0)
+	if err != nil || lineNumber <= 0 {
+		return name
 	}
+
+	yellowText := color.New(color.BgYellow, color.Bold).SprintFunc()
+	blueText := color.New(color.BgBlue, color.Bold).SprintFunc()
+	redText := color.New(color.BgRed, color.Bold).SprintFunc()
+	greenText := color.New(color.BgGreen, color.Bold).SprintFunc()
+
+	// Metro
+	if lineNumber < 10 {
+		return yellowText(name)
+	}
+
+	// Tram
+	if lineNumber < 20 {
+		return blueText(name)
+	}
+
+	// Bus
+	if lineNumber < 100 {
+		return redText(name)
+	}
+
+	return greenText(name)
 }
 
 func formatTime(arrivalTime time.Time) string {
+	boldText := color.New(color.Bold).SprintFunc()
 	timeUntilArrival := time.Until(arrivalTime)
 	if timeUntilArrival.Hours() > 0.1 {
-		return arrivalTime.Format("15:04")
+		return boldText(arrivalTime.Format("15:04"))
 	}
 
 	minutes := timeUntilArrival.Minutes()
 	if minutes < 1 {
-		return "now"
+		return boldText("now")
 	}
 
-	return fmt.Sprintf("%0.0f min.", minutes)
+	return boldText(fmt.Sprintf("%0.0f min.", minutes))
 }
 
 func showArrivals(locationID int) {
@@ -98,9 +113,8 @@ func showArrivals(locationID int) {
 	if err == nil {
 		for i := 0; i < len(arrivals); i++ {
 			fmt.Printf(
-				"%s  %s %s - %s \n",
-				vehicleType(arrivals[i].Line.VehicleMode),
-				arrivals[i].Line.Name,
+				"%s %s %s \n",
+				formatLineName(arrivals[i].Line.Name),
 				arrivals[i].Line.Destination,
 				formatTime(arrivals[i].ExpectedArrivalTime),
 			)
