@@ -1,6 +1,7 @@
 # Sanntid
 
-Program written in Go for retrieving realtime arrival data from the [Ruter API](https://ruter.no/labs/).
+Go application for retrieving realtime arrival data for public transportation in Norway.
+Data is provided by the [Ruter API](https://ruter.no/labs/).
 
 ![Screenshot](https://raw.githubusercontent.com/michaelenger/sanntid/master/screenshot.png)
 
