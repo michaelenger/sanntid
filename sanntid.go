@@ -7,61 +7,8 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/michaelenger/sanntid/ruter"
 )
-
-const (
-	// DirAny will give you Line in any direction.
-	DirAny sanntidDirection = iota
-
-	// DirUp will give you Line in only one direction.
-	DirUp
-
-	// DirDown will give you Line in only one direction, reverse of DirUp.
-	DirDown
-)
-
-type Line struct {
-	Name        string
-	Destination string
-	Direction   sanntidDirection
-}
-
-type Arrival struct {
-	Line                Line
-	ExpectedArrivalTime time.Time
-	Platform            string
-}
-
-func getArrivals(locationID int, direction sanntidDirection) ([]Arrival, error) {
-	var arrivals []Arrival
-
-	data, err := GetArrivalData(locationID)
-	timeLayout := "2006-01-02T15:04:05-07:00"
-
-	if err == nil {
-		for i := 0; i < len(data); i++ {
-			lineDir := data[i].MonitoredVehicleJourney.DirectionRef
-			if direction == DirAny || direction == lineDir {
-				arrivalTime, _ := time.Parse(timeLayout, data[i].MonitoredVehicleJourney.MonitoredCall.ExpectedArrivalTime)
-
-				line := Line{
-					data[i].MonitoredVehicleJourney.PublishedLineName,
-					data[i].MonitoredVehicleJourney.DestinationName,
-					lineDir,
-				}
-				arrival := Arrival{
-					line,
-					arrivalTime,
-					data[i].MonitoredVehicleJourney.MonitoredCall.DeparturePlatformName,
-				}
-
-				arrivals = append(arrivals, arrival)
-			}
-		}
-	}
-
-	return arrivals, err
-}
 
 func formatLineName(name string) string {
 	lineNumber, err := strconv.ParseInt(name, 10, 0)
@@ -84,11 +31,12 @@ func formatLineName(name string) string {
 		return blueText(name)
 	}
 
-	// Bus
+	// Local bus
 	if lineNumber < 100 {
 		return redText(name)
 	}
 
+	// Region bus
 	return greenText(name)
 }
 
@@ -108,7 +56,7 @@ func formatTime(arrivalTime time.Time) string {
 }
 
 func showArrivals(locationID int) {
-	arrivals, err := getArrivals(locationID, DirAny)
+	arrivals, err := ruter.GetArrivals(locationID)
 
 	if err == nil {
 		for i := 0; i < len(arrivals); i++ {
@@ -130,7 +78,7 @@ func main() {
 		if err == nil {
 			showArrivals(int(locationID))
 		} else {
-			place, err := GetPlace(args[0])
+			place, err := ruter.GetStop(args[0])
 
 			if err == nil {
 				showArrivals(place.ID)
